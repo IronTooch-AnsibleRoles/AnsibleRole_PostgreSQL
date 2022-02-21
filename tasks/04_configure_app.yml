@@ -75,6 +75,10 @@
   ansible.builtin.set_fact:
     postgres_major_ver: "{{ postgres_majorminor_ver | split ('.') | first }}"
 
+- name: HBA Conf Location
+  ansible.builtin.set_fact:
+    hba_conf_location: "/etc/postgresql/{{ postgres_major_ver }}/main/pg_hba.conf"
+
 - name: Template out pg_hba.conf
   ansible.builtin.template:
     src: pg_hba.conf.j2

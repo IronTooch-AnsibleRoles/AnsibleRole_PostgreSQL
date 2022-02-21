@@ -6,7 +6,6 @@ postgres_db: "{{ postgres_app_name }}_db"
 postgres_dbuser: "{{ postgres_app_name }}_dbuser"
 postgres_dbpassword: ""
 pga_restricted_cidr: "0/0"  # No restrictions
-hba_conf_location: "/etc/postgresql/{{ postgres_major_ver }}/main/pg_hba.conf"
 postgres_pass_location: "/etc/postgresql/postgres_db_pass.txt"
 postgres_user_created_path: "/etc/postgresql/{{ postgres_dbuser }}_created"
 postgres_db_created_path: "/etc/postgresql/{{ postgres_db }}_created"
