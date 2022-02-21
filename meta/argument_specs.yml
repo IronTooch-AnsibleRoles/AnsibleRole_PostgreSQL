@@ -14,7 +14,6 @@ argument_specs:
       default_postgres_system_user:
         type: "str"
         required: false
-        default: "postgres"
         description: "The name of the system user that Postgres makes to administer the Db"
 
       postgres_db:
@@ -32,13 +31,11 @@ argument_specs:
       postgres_dbpassword:
         type: "str"
         required: false
-        default: "A 24 character password randomly with no special characters"
         description: "The password to set for the DB user"
 
       pga_restricted_cidr:
         type: "str"
         required: false
-        default: "0/0"
         description: "The string value"
 
       postgres_pass_location:

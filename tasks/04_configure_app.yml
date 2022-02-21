@@ -4,7 +4,6 @@
     postgres_dbpw: "{{ postgres_dbpassword }}"
   when: postgres_dbpassword
 
-
 - name: Create Postgres Password since it was not provided
   ansible.builtin.set_fact:
     postgres_dbpw: "{{ lookup('community.general.random_string', length=24, special=false) }}"
@@ -101,3 +100,9 @@
     group: "{{ default_postgres_system_user }}"
     mode: "0700"
   when: postgres_pass_location
+
+- name: Restart postgresql service
+  ansible.builtin.service:
+    name: postgresql
+    state: restarted
+    enabled: true
