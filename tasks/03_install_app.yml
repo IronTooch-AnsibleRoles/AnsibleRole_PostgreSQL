@@ -1,0 +1,12 @@
+---
+- name: Install PostgreSQL
+  ansible.builtin.package:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2
+    state: present
+  register: apt_status
+  until: apt_status is success
+  delay: 6
+  retries: 10

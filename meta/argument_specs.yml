@@ -1,0 +1,47 @@
+---
+argument_specs:
+  main:
+    short_description: This role is designed to deploy a single PostgreSQL database, as is typically required for applications.
+    description: "Even without saving the password to a file, the raw password is available to follow-on plays with the {{ postgres_dbpassword }} variable, to be able to configure connection strings. This would be the most secure implementation."
+    options:
+      postgres_app_name:
+        type: "str"
+        required: true
+        default: "exampleapp"
+        description: "The name of the application that the DB is being deployed to support"
+
+      default_postgres_system_user:
+        type: "str"
+        required: false
+        default: "postgres"
+        description: "The name of the system user that Postgres makes to administer the Db"
+
+      postgres_db:
+        type: "str"
+        required: false
+        default: "{{ postgres_app_name }}_db"
+        description: "The name of the database to create."
+
+      postgres_dbuser:
+        type: "str"
+        required: false
+        default: "{{ postgres_app_name }}_dbuser"
+        description: "The name of the database user to create"
+
+      postgres_dbpassword:
+        type: "str"
+        required: false
+        default: "A 24 character password randomly with no special characters"
+        description: "The password to set for the DB user"
+
+      pga_restricted_cidr:
+        type: "str"
+        required: false
+        default: "0/0"
+        description: "The string value"
+
+      postgres_pass_location:
+        type: "str"
+        required: false
+        default: "/etc/postgresql/{{ postgres_major_ver }}"
+        description: "The path to save a copy of the database password file. Set to \"\" to not save a copy of the file"

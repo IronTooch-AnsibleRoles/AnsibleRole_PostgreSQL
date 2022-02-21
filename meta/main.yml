@@ -1,0 +1,16 @@
+galaxy_info:
+  role_name: postgresql
+  namespace: irontooch
+  author: IronTooch
+  description: Installs a single Postgresql database to support an Application. Makes a user and sets that user to own the database
+  license: GPL-3.0-only
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+
+  galaxy_tags: []
+
+dependencies: []

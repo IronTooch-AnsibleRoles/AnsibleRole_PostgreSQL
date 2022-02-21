@@ -1,0 +1,13 @@
+---
+# tasks file for db_postgresql
+- name: Install dependencies
+  ansible.builtin.include_tasks:
+    file: "01_install_dependencies.yml"
+
+- name: Install Postgres
+  ansible.builtin.include_tasks:
+    file: "03_install_app.yml"
+
+- name: Configure Environment
+  ansible.builtin.include_tasks:
+    file: "04_configure_app.yml"
