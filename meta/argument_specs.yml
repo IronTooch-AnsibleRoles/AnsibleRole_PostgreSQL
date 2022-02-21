@@ -2,7 +2,9 @@
 argument_specs:
   main:
     short_description: This role is designed to deploy a single PostgreSQL database, as is typically required for applications.
-    description: "Even without saving the password to a file, the raw password is available to follow-on plays with the {{ postgres_dbpassword }} variable, to be able to configure connection strings. This would be the most secure implementation."
+    description: |
+      Even without saving the password to a file, the raw password is available to follow-on plays with the {{ postgres_dbpassword }} variable,
+      to be able to configure connection strings. This would be the most secure implementation.
     options:
       postgres_app_name:
         type: "str"

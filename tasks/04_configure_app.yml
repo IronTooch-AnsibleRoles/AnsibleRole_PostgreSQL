@@ -28,6 +28,7 @@
   ansible.builtin.file:
     path: "{{ postgres_user_created_path }}"
     state: touch
+    mode: '0700'
   when: not postgres_user_created.stat.exists
 
 - name: Check if Database Created Flag file is present
@@ -48,6 +49,7 @@
   ansible.builtin.file:
     path: "{{ postgres_db_created_path }}"
     state: touch
+    mode: '0700'
   when: not postgres_db_created.stat.exists
 
 # The postgres HBA file is dependent on Major Version. All of this finagling is to get to the
