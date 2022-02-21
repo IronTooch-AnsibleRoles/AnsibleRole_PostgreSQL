@@ -1,13 +1,19 @@
 ---
 - name: Create Postgres Password since it was not provided
   ansible.builtin.set_fact:
-    postgres_dbpassword: "{{ lookup('community.general.random_string', length=24, special=false) }}"
+    postgres_dbpw: "{{ postgres_dbpassword }}"
+  when: postgres_dbpassword
+
+
+- name: Create Postgres Password since it was not provided
+  ansible.builtin.set_fact:
+    postgres_dbpw: "{{ lookup('community.general.random_string', length=24, special=false) }}"
   when: not postgres_dbpassword
   # no_log: true
 
 - name: Create Encrypted Postgres Password
   ansible.builtin.set_fact:
-    postgres_encrypted_password: "md5{{ (postgres_dbpassword + postgres_dbuser) | hash('md5')  }}"
+    postgres_encrypted_password: "md5{{ (postgres_dbpw + postgres_dbuser) | hash('md5')  }}"
   # no_log: true
 
 - name: Check if User Created Flag file is present
@@ -88,7 +94,7 @@
 
 - name: Copy Postgres DB Password to host location
   ansible.builtin.copy:
-    content: "{{ postgres_dbpassword }}"
+    content: "{{ postgres_dbpw }}"
     dest: "{{ postgres_pass_location }}"
     force: true
     owner: "{{ default_postgres_system_user }}"
