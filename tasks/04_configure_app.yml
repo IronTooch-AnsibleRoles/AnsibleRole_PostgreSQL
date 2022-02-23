@@ -43,12 +43,45 @@
   register: postgres_db_created
 
 - name: Create Postgres DB and grant to user
+  block:
+
+    - name: Create Postgres DB and grant to user (without collate and without ctype)
+      community.postgresql.postgresql_db:
+        name: "{{ postgres_db }}"
+        owner: "{{ postgres_dbuser }}"
+        template: "template0"
+        encoding: "UTF8"
+      when: (not postgres_db_lc_collate and not postgres_db_lc_ctype)
+
+    - name: Create Postgres DB and grant to user (with collate and without ctype)
+      community.postgresql.postgresql_db:
+        name: "{{ postgres_db }}"
+        owner: "{{ postgres_dbuser }}"
+        template: "template0"
+        encoding: "UTF8"
+        lc_collate: "{{ postgres_db_lc_collate }}"
+      when: (postgres_db_lc_collate and not postgres_db_lc_ctype)
+
+    - name: Create Postgres DB and grant to user (without collate and with ctype)
+      community.postgresql.postgresql_db:
+        name: "{{ postgres_db }}"
+        owner: "{{ postgres_dbuser }}"
+        template: "template0"
+        encoding: "UTF8"
+        lc_ctype: "{{ postgres_db_lc_ctype }}"
+      when: (not postgres_db_lc_collate and postgres_db_lc_ctype)
+
+    - name: Create Postgres DB and grant to user (with collate and with ctype)
+      community.postgresql.postgresql_db:
+        name: "{{ postgres_db }}"
+        owner: "{{ postgres_dbuser }}"
+        template: "template0"
+        encoding: "UTF8"
+        lc_collate: "{{ postgres_db_lc_collate }}"
+        lc_ctype: "{{ postgres_db_lc_ctype }}"
+      when: (postgres_db_lc_collate and postgres_db_lc_ctype)
+
   become_user: "{{ default_postgres_system_user }}"
-  community.postgresql.postgresql_db:
-    name: "{{ postgres_db }}"
-    owner: "{{ postgres_dbuser }}"
-    template: "template0"
-    encoding: "UTF8"
   when: not postgres_db_created.stat.exists
 
 - name: Touch a file to demonstrate Database is Created
