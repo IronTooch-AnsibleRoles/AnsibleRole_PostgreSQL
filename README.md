@@ -27,6 +27,10 @@ Role Variables
   - Defaults to */etc/postgresql/{{ postgres_major_ver }}/main/pg_hba.conf*
 - **postgres_pass_location**: The path to save a copy of the database password file. Set to "" to not save a copy of the file
   - Defaults to */etc/postgresql/{{ postgres_major_ver }}*
+- **postgres_db_lc_collate**: Collation order (LC_COLLATE) to use in the database
+  - Defaults to *Whatever PostgreSQL module does*
+- **postgres_db_lc_ctype**: Character classification (LC_CTYPE) to use in the database
+  - Defaults to *Whatever PostgreSQL module does*
 
 Note: Even without saving the password to a file, the raw password is available to follow-on plays with the {{ postgres_dbpassword }} variable, to be able to configure connection strings. This would be the most secure implementation.
 
