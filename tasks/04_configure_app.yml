@@ -16,6 +16,16 @@
     postgres_encrypted_password: "md5{{ (postgres_dbpw + postgres_dbuser) | hash('md5')  }}"
   no_log: true
 
+- name: Copy Postgres DB Password to host location
+  ansible.builtin.copy:
+    content: "{{ postgres_dbpw }}"
+    dest: "{{ postgres_pass_location }}"
+    force: true
+    owner: "{{ default_postgres_system_user }}"
+    group: "{{ default_postgres_system_user }}"
+    mode: "0700"
+  when: postgres_pass_location
+
 - name: Check if User Created Flag file is present
   ansible.builtin.stat:
     path: "{{ postgres_user_created_path }}"
@@ -91,49 +101,55 @@
     mode: '0700'
   when: not postgres_db_created.stat.exists
 
+- name: Check if HBA has been created
+  ansible.builtin.stat:
+    path: "{{ postgres_hba_created_path }}"
+  register: postgres_hba_created
+
 # The postgres HBA file is dependent on Major Version. All of this finagling is to get to the
 # Major version for Postgres. If they change the format of the output of 'SHOW server_version;'
 # this will all break and I will cry big manly tears
 
-- name: Get Postgres Version
-  become_user: "{{ default_postgres_system_user }}"
-  community.postgresql.postgresql_query:
-    query: "SHOW server_version;"
-    db: "postgres"  # The default postgres Db
-  register: postgres_raw_version
+- name: Create HBA and copy user password
+  block:
 
-- name: Set Large Version Fact
-  ansible.builtin.set_fact:
-    postgres_version: "{{ (postgres_raw_version.query_result | first)['server_version'] }}"
+    - name: Get Postgres Version
+      become_user: "{{ default_postgres_system_user }}"
+      community.postgresql.postgresql_query:
+        query: "SHOW server_version;"
+        db: "postgres"  # The default postgres Db
+      register: postgres_raw_version
 
-- name: Set Major/Minor Version Fact
-  ansible.builtin.set_fact:
-    postgres_majorminor_ver: "{{ postgres_version | split (' ') | first }}"
+    - name: Set Large Version Fact
+      ansible.builtin.set_fact:
+        postgres_version: "{{ (postgres_raw_version.query_result | first)['server_version'] }}"
 
-- name: Set Major Version Fact
-  ansible.builtin.set_fact:
-    postgres_major_ver: "{{ postgres_majorminor_ver | split ('.') | first }}"
+    - name: Set Major/Minor Version Fact
+      ansible.builtin.set_fact:
+        postgres_majorminor_ver: "{{ postgres_version | split (' ') | first }}"
 
-- name: HBA Conf Location
-  ansible.builtin.set_fact:
-    hba_conf_location: "/etc/postgresql/{{ postgres_major_ver }}/main/pg_hba.conf"
+    - name: Set Major Version Fact
+      ansible.builtin.set_fact:
+        postgres_major_ver: "{{ postgres_majorminor_ver | split ('.') | first }}"
 
-- name: Template out pg_hba.conf
-  ansible.builtin.template:
-    src: pg_hba.conf.j2
-    dest: "{{ hba_conf_location }}"
-    force: true
-    mode: '0770'  # Ansible-Lint hates when this isn't set
+    - name: HBA Conf Location
+      ansible.builtin.set_fact:
+        hba_conf_location: "/etc/postgresql/{{ postgres_major_ver }}/main/pg_hba.conf"
 
-- name: Copy Postgres DB Password to host location
-  ansible.builtin.copy:
-    content: "{{ postgres_dbpw }}"
-    dest: "{{ postgres_pass_location }}"
-    force: true
-    owner: "{{ default_postgres_system_user }}"
-    group: "{{ default_postgres_system_user }}"
-    mode: "0700"
-  when: postgres_pass_location
+    - name: Template out pg_hba.conf
+      ansible.builtin.template:
+        src: pg_hba.conf.j2
+        dest: "{{ hba_conf_location }}"
+        force: true
+        mode: '0770'  # Ansible-Lint hates when this isn't set
+  when: not postgres_hba_created.stat.exists
+
+- name: Touch a file to demonstrate HBA has been created
+  ansible.builtin.file:
+    path: "{{ postgres_hba_created_path }}"
+    state: touch
+    mode: '0700'
+  when: not postgres_hba_created.stat.exists
 
 - name: Restart postgresql service
   ansible.builtin.service:
