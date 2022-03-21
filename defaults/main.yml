@@ -6,10 +6,11 @@ postgres_db: "{{ postgres_app_name }}_db"
 postgres_dbuser: "{{ postgres_app_name }}_dbuser"
 postgres_dbpassword: ""
 pga_restricted_cidr: "0/0"  # No restrictions
-postgres_pass_location: "/etc/postgresql/postgres_db_pass.txt"
+postgres_pass_folder: "/root/postgresql"
+postgres_pass_location: "{{ postgres_pass_folder }}/{{ postgres_dbuser }}_pass.txt"
+
 postgres_user_created_path: "/etc/postgresql/{{ postgres_dbuser }}_created"
 postgres_db_created_path: "/etc/postgresql/{{ postgres_db }}_created"
-postgres_hba_created_path: "/etc/postgresql/{{ postgres_db }}_hba_created"
 
 postgres_db_uri: "postgres://{{ postgres_dbuser }}:{{ postgres_dbpassword }}@localhost/{{ postgres_db }}"
 postgres_db_encoding: "UTF8"

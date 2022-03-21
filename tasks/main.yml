@@ -6,8 +6,16 @@
 
 - name: Install Postgres
   ansible.builtin.include_tasks:
-    file: "03_install_app.yml"
+    file: "02_install_app.yml"
 
-- name: Configure Environment
+- name: Create User
   ansible.builtin.include_tasks:
-    file: "04_configure_app.yml"
+    file: "03_create_user.yml"
+
+- name: Create DB
+  ansible.builtin.include_tasks:
+    file: "04_create_db.yml"
+
+- name: Create HBA
+  ansible.builtin.include_tasks:
+    file: "05_create_hba.yml"

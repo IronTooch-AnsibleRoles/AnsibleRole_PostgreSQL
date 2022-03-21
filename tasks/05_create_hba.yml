@@ -1,0 +1,44 @@
+
+# The postgres HBA file is dependent on Major Version. All of this finagling is to get to the
+# Major version for Postgres. If they change the format of the output of 'SHOW server_version;'
+# this will all break and I will cry big manly tears
+
+- name: Get Postgres Version
+  become_user: "{{ default_postgres_system_user }}"
+  community.postgresql.postgresql_query:
+    query: "SHOW server_version;"
+    db: "postgres"  # The default postgres Db
+  register: postgres_raw_version
+
+- name: Set Large Version Fact
+  ansible.builtin.set_fact:
+    postgres_version: "{{ (postgres_raw_version.query_result | first)['server_version'] }}"
+
+- name: Set Major/Minor Version Fact
+  ansible.builtin.set_fact:
+    postgres_majorminor_ver: "{{ postgres_version | split (' ') | first }}"
+
+- name: Set Major Version Fact
+  ansible.builtin.set_fact:
+    postgres_major_ver: "{{ postgres_majorminor_ver | split ('.') | first }}"
+
+- name: HBA Conf Location
+  ansible.builtin.set_fact:
+    hba_conf_location: "/etc/postgresql/{{ postgres_major_ver }}/main/pg_hba.conf"
+
+- name: Add Localhost to file if not present to prevent lockout
+  ansible.builtin.lineinfile:
+    path: "{{ hba_conf_location }}"
+    state: present
+    line: "local   all                 postgres                                                peer"
+    create: true
+    mode: "0770"
+  notify: Restart Postgres
+
+- name: Add new DB to HBA Conf
+  ansible.builtin.lineinfile:
+    path: "{{ hba_conf_location }}"
+    state: present
+    line: "host    {{ postgres_db }}    {{ postgres_dbuser }}    {{ pga_restricted_cidr }}     md5"
+    mode: "0770"
+  notify: Restart Postgres

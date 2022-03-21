@@ -1,0 +1,62 @@
+---
+- name: Check if User Created Flag file is present
+  ansible.builtin.stat:
+    path: "{{ postgres_user_created_path }}"
+  register: postgres_user_created
+
+- name: Create User
+  block:
+
+    - name: Create Postgres passwords folder in root
+      ansible.builtin.file:
+        path: "{{ postgres_pass_folder }}"
+        state: directory
+        mode: '0700'
+
+    - name: Get Postgres Password
+      block:
+
+        - name: Set Postgres Password since it was provided
+          ansible.builtin.set_fact:
+            postgres_dbpw: "{{ postgres_dbpassword }}"
+          when: postgres_dbpassword
+          no_log: true
+
+        - name: Create Postgres Password since it was not provided
+          ansible.builtin.set_fact:
+            postgres_dbpw: "{{ lookup('community.general.random_string', length=24, special=false) }}"
+          when: not postgres_dbpassword
+          no_log: true
+
+        - name: Create Encrypted Postgres Password
+          ansible.builtin.set_fact:
+            postgres_encrypted_password: "md5{{ (postgres_dbpw + postgres_dbuser) | hash('md5')  }}"
+          no_log: true
+
+        - name: Copy Postgres DB Password to host location
+          ansible.builtin.copy:
+            content: "{{ postgres_dbpw }}"
+            dest: "{{ postgres_pass_location }}"
+            force: true
+            owner: "{{ default_postgres_system_user }}"
+            group: "{{ default_postgres_system_user }}"
+            mode: "0700"
+          when: postgres_pass_location
+
+    - name: Create Postgres user
+      become_user: "{{ default_postgres_system_user }}"
+      community.postgresql.postgresql_user:
+        name: "{{ postgres_dbuser }}"
+        password: "{{ postgres_encrypted_password }}"
+        role_attr_flags: CREATEDB
+      no_log: true
+
+  when: not postgres_user_created.stat.exists
+  notify: Restart Postgres
+
+- name: Touch a file to demonstrate User is Created
+  ansible.builtin.file:
+    path: "{{ postgres_user_created_path }}"
+    state: touch
+    mode: '0700'
+  when: not postgres_user_created.stat.exists
